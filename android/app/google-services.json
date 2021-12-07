@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "826309064184",
+    "project_id": "puchlo-55fe4",
+    "storage_bucket": "puchlo-55fe4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:826309064184:android:31807d2e6aa99fa624520d",
+        "android_client_info": {
+          "package_name": "com.helperproj.app.puchlo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "826309064184-8bn2jco47k3ki4iv4kops01kp5425gbd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQKtJ7DHAzUKP4jIlvR5ykMem91PZFBNY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "826309064184-8bn2jco47k3ki4iv4kops01kp5425gbd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
