@@ -1,31 +1,33 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:page_transition/page_transition.dart';
 import 'package:puchlo/components/line.dart';
 import 'package:puchlo/globals.dart' as g;
 import 'package:puchlo/models/user.dart';
-import 'package:puchlo/screens/register.dart';
 import 'package:puchlo/services/dbservices.dart';
 import 'package:string_validator/string_validator.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key key}) : super(key: key);
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({Key key}) : super(key: key);
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _RegisterPageState createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   bool ispass = true;
+  bool ispass2 = true;
+  TextEditingController name = TextEditingController(text: '');
+  TextEditingController phone = TextEditingController(text: '');
   TextEditingController email = TextEditingController(text: '');
   TextEditingController pass = TextEditingController(text: '');
+  TextEditingController pass2 = TextEditingController(text: '');
   final _fkey = GlobalKey<FormState>();
   String verificationID;
   String smsCode = "";
 
   //verify phone no
-  Future phoneVerify(phone) async {
+  Future phoneVerify() async {
     final PhoneCodeAutoRetrievalTimeout autoRetrieve = (vID) {
       this.verificationID = vID;
     };
@@ -40,9 +42,6 @@ class _LoginPageState extends State<LoginPage> {
 
     final PhoneVerificationCompleted verSuccess =
         (PhoneAuthCredential cred) async {
-      UserCredential user =
-          await FirebaseAuth.instance.signInWithCredential(cred);
-      print("user.user.uid");
       Navigator.pop(context);
     };
     final PhoneVerificationFailed verFailed = (FirebaseAuthException exc) {
@@ -79,15 +78,17 @@ class _LoginPageState extends State<LoginPage> {
                 horizontal: g.width * 0.05, vertical: g.height * 0.01),
             actions: <Widget>[
               RawMaterialButton(
-                  onPressed: () {
+                  onPressed: () async {
                     var c = FirebaseAuth.instance.currentUser;
                     if (c != null) {
                       Navigator.pop(context);
                       FirebaseAuth.instance.signOut();
-                      signIn();
+                      await signIn();
+                      Navigator.pop(context);
                     } else {
                       Navigator.pop(context);
-                      signIn();
+                      await signIn();
+                      Navigator.pop(context);
                     }
                   },
                   child: Text(
@@ -99,12 +100,19 @@ class _LoginPageState extends State<LoginPage> {
         });
   }
 
-  signIn() {
+  signIn() async {
     var v = PhoneAuthProvider.credential(
         verificationId: verificationID, smsCode: smsCode);
-    FirebaseAuth.instance.signInWithCredential(v).catchError((e) {
+    UserCredential userc =
+        await FirebaseAuth.instance.signInWithCredential(v).catchError((e) {
       print(e);
     });
+    DatabaseServices().addUserInfo(UserinApp.fromMap({
+      'uid': userc.user.uid,
+      'email': email.text.trim(),
+      'password': pass.text.trim(),
+      'phoneNumber': phone.text.trim(),
+    }));
   }
 
   @override
@@ -137,12 +145,90 @@ class _LoginPageState extends State<LoginPage> {
               padding: EdgeInsets.only(
                 left: g.width * 0.1,
                 right: g.width * 0.1,
-                top: g.height * 0.2,
+                top: g.height * 0.1,
               ),
               child: Form(
                 key: _fkey,
                 child: ListView(
                   children: [
+                    TextFormField(
+                      validator: (name) {
+                        if (name.isEmpty) {
+                          return "Name cannot be empty";
+                        } else if (!isAlpha(name)) {
+                          return "Invalid Name";
+                        }
+                        return null;
+                      },
+                      controller: name,
+                      style: TextStyle(
+                        fontFamily: 'Lucida Fax',
+                        fontSize: 22,
+                        color: Colors.black,
+                      ),
+                      maxLength: 36,
+                      decoration: InputDecoration(
+                        counterText: '',
+                        border: UnderlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        contentPadding: EdgeInsets.only(
+                            left: g.width * 0.045,
+                            right: g.width * 0.045,
+                            top: g.height * 0.005,
+                            bottom: g.height * 0.005),
+                        filled: true,
+                        fillColor: const Color(0xe3ffffff),
+                        hintText: 'Name',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Lucida Fax',
+                          fontSize: 22,
+                          color: Color(0xff707070),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: g.height * 0.02,
+                    ),
+                    TextFormField(
+                      validator: (phone) {
+                        if (phone.isEmpty) {
+                          return "Mobile Number cannot be empty";
+                        } else if (!isNumeric(phone) || phone.length != 10) {
+                          return "Invalid Mobile Number";
+                        }
+                        return null;
+                      },
+                      controller: phone,
+                      style: TextStyle(
+                        fontFamily: 'Lucida Fax',
+                        fontSize: 22,
+                        color: Colors.black,
+                      ),
+                      maxLength: 36,
+                      decoration: InputDecoration(
+                        counterText: '',
+                        border: UnderlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        contentPadding: EdgeInsets.only(
+                            left: g.width * 0.045,
+                            right: g.width * 0.045,
+                            top: g.height * 0.005,
+                            bottom: g.height * 0.005),
+                        filled: true,
+                        fillColor: const Color(0xe3ffffff),
+                        hintText: 'Mobile Number',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Lucida Fax',
+                          fontSize: 22,
+                          color: Color(0xff707070),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: g.height * 0.02,
+                    ),
                     TextFormField(
                       validator: (email) {
                         if (email.isEmpty) {
@@ -180,7 +266,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     SizedBox(
-                      height: g.height * 0.025,
+                      height: g.height * 0.02,
                     ),
                     TextFormField(
                       validator: (password) {
@@ -237,16 +323,67 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     SizedBox(
+                      height: g.height * 0.02,
+                    ),
+                    TextFormField(
+                      validator: (password) {
+                        if (password.isEmpty) {
+                          return "Password field cannot be empty";
+                        } else if (password != pass.text) {
+                          return "Password does not match";
+                        }
+                        return null;
+                      },
+                      controller: pass2,
+                      style: TextStyle(
+                        fontFamily: 'Lucida Fax',
+                        fontSize: 22,
+                        color: Colors.black,
+                      ),
+                      maxLength: 36,
+                      obscureText: ispass2,
+                      decoration: InputDecoration(
+                        counterText: '',
+                        suffix: IconButton(
+                          padding: EdgeInsets.all(0),
+                          icon: FaIcon(
+                            ispass2
+                                ? FontAwesomeIcons.solidEye
+                                : FontAwesomeIcons.solidEyeSlash,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              ispass2 = !ispass2;
+                            });
+                          },
+                        ),
+                        border: UnderlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        contentPadding: EdgeInsets.only(
+                            left: g.width * 0.045,
+                            right: g.width * 0.045,
+                            top: g.height * 0.005,
+                            bottom: g.height * 0.005),
+                        filled: true,
+                        fillColor: const Color(0xe3ffffff),
+                        hintText: 'Repeat Password',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Lucida Fax',
+                          fontSize: 22,
+                          color: Color(0xff707070),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
                       height: g.height * 0.06,
                     ),
                     Center(
                       child: RawMaterialButton(
                         splashColor: Colors.deepPurpleAccent.withOpacity(0.2),
-                        onPressed: () async{
+                        onPressed: () {
                           if (_fkey.currentState.validate()) {
-                            UserinApp user = await DatabaseServices()
-                                .getUser(email.text.trim(), pass.text.trim());
-                            phoneVerify(user.phoneNumber);
+                            phoneVerify();
                           }
                         },
                         child: Container(
@@ -268,7 +405,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           child: Center(
                               child: Text(
-                            'Login',
+                            'Register',
                             style: TextStyle(
                               fontFamily: 'Lucida Fax',
                               fontSize: 22,
@@ -277,23 +414,6 @@ class _LoginPageState extends State<LoginPage> {
                           )),
                         ),
                       ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        RawMaterialButton(
-                          onPressed: () {},
-                          child: Center(
-                              child: Text(
-                            'Forget Password',
-                            style: TextStyle(
-                              fontFamily: 'Lucida Fax',
-                              fontSize: 14,
-                              color: Colors.blueAccent,
-                            ),
-                          )),
-                        ),
-                      ],
                     ),
                     SizedBox(
                       height: g.height * 0.02,
@@ -309,69 +429,12 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     SizedBox(
-                      height: g.height * 0.04,
-                    ),
-                    Center(
-                      child: RawMaterialButton(
-                        onPressed: () async {},
-                        child: Container(
-                          width: g.width * 0.6,
-                          height: g.height * 0.07,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.deepPurple[400],
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(7),
-                            gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.deepPurpleAccent.withOpacity(0.2),
-                                  Colors.deepPurpleAccent.withOpacity(0.8),
-                                ]),
-                          ),
-                          child: Center(
-                              child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Expanded(child: Container()),
-                              Container(
-                                height: g.height * 0.04,
-                                width: g.width * 0.15,
-                                child: Image.network(
-                                    'https://www.freepnglogos.com/uploads/google-logo-png/google-logo-icon-png-transparent-background-osteopathy-16.png'),
-                              ),
-                              Text(
-                                'Login With Google',
-                                style: TextStyle(
-                                  fontFamily: 'Lucida Fax',
-                                  fontSize: 16,
-                                  color: Colors.deepPurple,
-                                ),
-                              ),
-                              Expanded(child: Container())
-                            ],
-                          )),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
                       height: g.height * 0.02,
                     ),
                     Center(
                       child: RawMaterialButton(
                         splashColor: Colors.deepPurpleAccent.withOpacity(0.2),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            PageTransition(
-                              child: RegisterPage(),
-                              type: PageTransitionType.leftToRightJoined,
-                              childCurrent: LoginPage(),
-                            ),
-                          );
-                        },
+                        onPressed: () {},
                         child: Container(
                           width: g.width * 0.6,
                           height: g.height * 0.07,
@@ -391,7 +454,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           child: Center(
                               child: Text(
-                            'Sign Up',
+                            'Login',
                             style: TextStyle(
                               fontFamily: 'Lucida Fax',
                               fontSize: 22,
