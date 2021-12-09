@@ -35,9 +35,12 @@ class DatabaseServices {
 
   //add user
   Future addUserInfo(UserinApp user) async {
-    await FirebaseFirestore.instance
-        .collection(users)
-        .doc(user.uid)
-        .set(user.toMap());
+    await FirebaseFirestore.instance.collection(users).doc(user.uid).set({
+      'uid': user.uid,
+      'name': user.name,
+      'email': user.email,
+      'phoneNumber': user.phoneNumber,
+      'password': user.password
+    });
   }
 }

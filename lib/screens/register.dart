@@ -82,13 +82,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     var c = FirebaseAuth.instance.currentUser;
                     if (c != null) {
                       Navigator.pop(context);
+                      Navigator.pop(context);
                       FirebaseAuth.instance.signOut();
                       await signIn();
-                      Navigator.pop(context);
                     } else {
                       Navigator.pop(context);
-                      await signIn();
                       Navigator.pop(context);
+                      await signIn();
                     }
                   },
                   child: Text(
@@ -110,9 +110,17 @@ class _RegisterPageState extends State<RegisterPage> {
     DatabaseServices().addUserInfo(UserinApp.fromMap({
       'uid': userc.user.uid,
       'email': email.text.trim(),
+      'name': name.text.trim(),
       'password': pass.text.trim(),
       'phoneNumber': phone.text.trim(),
     }));
+    g.userinApp = UserinApp.fromMap({
+      'uid': userc.user.uid,
+      'email': email.text.trim(),
+      'name': name.text.trim(),
+      'password': pass.text.trim(),
+      'phoneNumber': phone.text.trim(),
+    });
   }
 
   @override
@@ -155,8 +163,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       validator: (name) {
                         if (name.isEmpty) {
                           return "Name cannot be empty";
-                        } else if (!isAlpha(name)) {
-                          return "Invalid Name";
                         }
                         return null;
                       },

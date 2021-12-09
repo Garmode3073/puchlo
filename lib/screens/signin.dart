@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -8,6 +9,7 @@ import 'package:puchlo/models/user.dart';
 import 'package:puchlo/screens/register.dart';
 import 'package:puchlo/services/dbservices.dart';
 import 'package:string_validator/string_validator.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key key}) : super(key: key);
@@ -242,7 +244,7 @@ class _LoginPageState extends State<LoginPage> {
                     Center(
                       child: RawMaterialButton(
                         splashColor: Colors.deepPurpleAccent.withOpacity(0.2),
-                        onPressed: () async{
+                        onPressed: () async {
                           if (_fkey.currentState.validate()) {
                             UserinApp user = await DatabaseServices()
                                 .getUser(email.text.trim(), pass.text.trim());
@@ -313,7 +315,47 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     Center(
                       child: RawMaterialButton(
-                        onPressed: () async {},
+                        onPressed: () async {
+                          // Trigger the authentication flow
+                          final GoogleSignInAccount googleUser =
+                              await GoogleSignIn().signIn();
+
+                          // Obtain the auth details from the request
+                          final GoogleSignInAuthentication googleAuth =
+                              await googleUser.authentication;
+
+                          // Create a new credential
+                          final GoogleAuthCredential credential =
+                              GoogleAuthProvider.credential(
+                            accessToken: googleAuth.accessToken,
+                            idToken: googleAuth.idToken,
+                          );
+
+                          // Once signed in, return the UserCredential
+                          var user = await FirebaseAuth.instance
+                              .signInWithCredential(credential);
+                          var v = await FirebaseFirestore.instance
+                              .collection("users")
+                              .doc(user.user.uid)
+                              .get();
+                          if (!v.exists) {
+                            await DatabaseServices()
+                                .addUserInfo(UserinApp.fromMap({
+                              'uid': user.user.uid,
+                              'name': user.user.displayName,
+                              'email': user.user.email,
+                              'password': '******',
+                              'phoneNumber': user.user.phoneNumber
+                            }));
+                          }
+                          g.userinApp = UserinApp.fromMap({
+                            'uid': user.user.uid,
+                            'name': user.user.displayName,
+                            'email': user.user.email,
+                            'password': '******',
+                            'phoneNumber': user.user.phoneNumber
+                          });
+                        },
                         child: Container(
                           width: g.width * 0.6,
                           height: g.height * 0.07,
