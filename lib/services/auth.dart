@@ -8,13 +8,14 @@ class AuthServices {
 
   //stream of user login
   Stream<UserinApp> get userIsIn {
-    return _auth.userChanges().map(
-          (event) => event == null
-              ? null
-              : UserinApp.fromMap(
-                  {'uid': event.uid, 'phone': event.phoneNumber},
-                ),
-        );
+    return _auth.userChanges().map((event) {
+      if (event == null) {
+        return null;
+      }
+      return UserinApp.fromMap(
+        {'uid': event.uid, 'phone': event.phoneNumber},
+      );
+    });
   }
 
   //get info of user with id
