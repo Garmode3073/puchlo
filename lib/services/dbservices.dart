@@ -16,7 +16,25 @@ class DatabaseServices {
         .doc(uid)
         .get()
         .then((value) => value.data());
-    return UserinApp.fromMap(data);
+    g.userinApp = UserinApp.fromMap(data);
+    return g.userinApp;
+  }
+
+  //addphoto
+  Future addFile(filepath) async {
+    await FirebaseFirestore.instance
+        .collection("docs")
+        .doc(filepath)
+        .set({"docid": filepath});
+  }
+
+  //photo exists
+  Future<List> isfileexist(id) async {
+    return await FirebaseFirestore.instance
+        .collection("docs")
+        .where("docid", isEqualTo: id)
+        .get()
+        .then((value) => value.docs.map((e) => e.data()).toList());
   }
 
   //get user
@@ -31,8 +49,12 @@ class DatabaseServices {
               'uid': value.id,
               'name': value.data()["name"],
               'email': value.data()["email"],
-              'phone': value.data()["phoneNumber"],
-              'password': value.data()["password"]
+              'phoneNumber': value.data()["phoneNumber"],
+              'password': value.data()["password"],
+              'bio': value.data()["bio"],
+              'date': value.data()["date"],
+              'month': value.data()["month"],
+              'year': value.data()["year"],
             });
     return UserinApp.fromMap(data);
   }
@@ -44,8 +66,36 @@ class DatabaseServices {
       'name': user.name,
       'email': user.email,
       'phoneNumber': user.phoneNumber,
-      'password': user.password
+      'password': user.password,
+      'bio': user.bio,
+      'date': user.date,
+      'month': user.month,
+      'year': user.year,
     });
+  }
+
+  //add bio
+  Future addbio(userid, bio) async {
+    await FirebaseFirestore.instance
+        .collection(users)
+        .doc(userid)
+        .update({'bio': bio});
+  }
+
+  //add dob
+  Future adddob(userid, date, month, year) async {
+    await FirebaseFirestore.instance
+        .collection(users)
+        .doc(userid)
+        .update({'date': date, 'month': month, 'year': year});
+  }
+
+  //add phone
+  Future addphone(userid, phoneNumber) async {
+    await FirebaseFirestore.instance
+        .collection(users)
+        .doc(userid)
+        .update({'phoneNumber': phoneNumber});
   }
 
   //add question
@@ -55,6 +105,8 @@ class DatabaseServices {
       'answers': question.answers,
       'id': id,
       'category': question.category,
+      'datetime': DateTime.now(),
+      'ld': question.likes - question.dislikes,
       'dislikes': question.dislikes,
       'likes': question.likes,
       'question': question.question,
@@ -63,9 +115,10 @@ class DatabaseServices {
   }
 
   //get all questions
-  Future getQuestions() async {
+  Future getQuestions(filt) async {
     return await FirebaseFirestore.instance
         .collection("Questions")
+        .orderBy(filt, descending: true)
         .get()
         .then((value) => value.docs
             .map(
@@ -75,10 +128,11 @@ class DatabaseServices {
   }
 
   //get category questions
-  Future getCatQuestions(String cat) async {
+  Future getCatQuestions(String cat, String filt) async {
     return await FirebaseFirestore.instance
         .collection("Questions")
         .where('category', isEqualTo: cat)
+        .orderBy(filt, descending: true)
         .get()
         .then((value) => value.docs
             .map(
@@ -98,6 +152,8 @@ class DatabaseServices {
       'replies': answer.replies,
       'id': id,
       'questionid': answer.questionid,
+      'datetime': DateTime.now(),
+      'ld': answer.likes - answer.dislikes,
       'dislikes': answer.dislikes,
       'likes': answer.likes,
       'answer': answer.answer,
@@ -106,10 +162,11 @@ class DatabaseServices {
   }
 
   //get answers
-  Future getAnswers(String questionid) async {
+  Future getAnswers(String questionid, String filt) async {
     return await FirebaseFirestore.instance
         .collection("Answers")
         .where("questionid", isEqualTo: questionid)
+        .orderBy(filt, descending: true)
         .get()
         .then((value) =>
             value.docs.map((e) => Answer.fromMap(e.data())).toList());
@@ -125,6 +182,8 @@ class DatabaseServices {
     await FirebaseFirestore.instance.collection("Replies").doc(id).set({
       'id': id,
       'questionid': reply.questionid,
+      'datetime': DateTime.now(),
+      'ld': reply.likes - reply.dislikes,
       'answerid': reply.answerid,
       'dislikes': reply.dislikes,
       'likes': reply.likes,
@@ -134,37 +193,36 @@ class DatabaseServices {
   }
 
   //get replies
-  Future getReplies(String answerid) async {
+  Future getReplies(String answerid, String filt) async {
     return await FirebaseFirestore.instance
         .collection("Replies")
         .where("answerid", isEqualTo: answerid)
+        .orderBy(filt, descending: true)
         .get()
         .then(
             (value) => value.docs.map((e) => Reply.fromMap(e.data())).toList());
   }
 
   //like
-  Future like(
-      String queryid, String collection, String username, int likes) async {
+  Future like(String queryid, String collection, String username, int likes,
+      int ld) async {
     await FirebaseFirestore.instance
         .collection(collection)
         .doc(queryid)
-        .update({'likes': likes});
+        .update({'likes': likes, 'ld': ld});
     await FirebaseFirestore.instance
         .collection("Likes")
         .doc()
-        .set({"queryid": queryid, "username": username}).then((value) {
-      print("success");
-    });
+        .set({"queryid": queryid, "username": username}).then((value) {});
   }
 
   //dislike
-  Future dislike(
-      String queryid, String collection, String username, int dislikes) async {
+  Future dislike(String queryid, String collection, String username,
+      int dislikes, int ld) async {
     await FirebaseFirestore.instance
         .collection(collection)
         .doc(queryid)
-        .update({'dislikes': dislikes});
+        .update({'dislikes': dislikes, 'ld': ld});
     await FirebaseFirestore.instance
         .collection("Dislikes")
         .doc()
@@ -172,12 +230,12 @@ class DatabaseServices {
   }
 
   //unlike
-  Future unlike(
-      String queryid, String collection, String username, int likes) async {
+  Future unlike(String queryid, String collection, String username, int likes,
+      int ld) async {
     await FirebaseFirestore.instance
         .collection(collection)
         .doc(queryid)
-        .update({'likes': likes});
+        .update({'likes': likes, 'ld': ld});
     await FirebaseFirestore.instance
         .collection("Likes")
         .where("queryid", isEqualTo: queryid)
@@ -192,12 +250,12 @@ class DatabaseServices {
   }
 
   //undislike
-  Future undislike(
-      String queryid, String collection, String username, int dislikes) async {
+  Future undislike(String queryid, String collection, String username,
+      int dislikes, int ld) async {
     await FirebaseFirestore.instance
         .collection(collection)
         .doc(queryid)
-        .update({'dislikes': dislikes});
+        .update({'dislikes': dislikes, 'ld': ld});
     await FirebaseFirestore.instance
         .collection("Dislikes")
         .where("queryid", isEqualTo: queryid)

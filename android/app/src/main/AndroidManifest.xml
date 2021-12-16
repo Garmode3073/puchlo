@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.helperproj.app.puchlo">
    <application
-        android:label="puchlo"
+        android:label="Puch Lo"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

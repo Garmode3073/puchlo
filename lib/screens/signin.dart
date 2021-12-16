@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
-          phoneNumber: '+91 ' + phone.text,
+          phoneNumber: '+91 ' + phone,
           verificationCompleted: verSuccess,
           verificationFailed: verFailed,
           codeSent: smsCodeSent,
@@ -248,6 +248,7 @@ class _LoginPageState extends State<LoginPage> {
                           if (_fkey.currentState.validate()) {
                             UserinApp user = await DatabaseServices()
                                 .getUser(email.text.trim(), pass.text.trim());
+                            print(user.toMap());
                             phoneVerify(user.phoneNumber);
                           }
                         },

@@ -18,7 +18,9 @@ class MyApp extends StatelessWidget {
     return FutureBuilder(
       future: _initialization,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const MaterialApp(home: LoadingPage());
+        } else if (snapshot.connectionState == ConnectionState.done) {
           AuthServices auth = AuthServices();
           return MaterialApp(
               title: 'Flutter Demo',
@@ -39,6 +41,28 @@ class MyApp extends StatelessWidget {
           home: LoadingPage(),
         );
       },
+    );
+  }
+}
+
+class Dummy extends StatefulWidget {
+  const Dummy({Key key}) : super(key: key);
+
+  @override
+  _DummyState createState() => _DummyState();
+}
+
+class _DummyState extends State<Dummy> {
+  String data = "WarMachine rox";
+  @override
+  Widget build(BuildContext context) {
+    return Provider(
+      create: (context) => data,
+      child: Scaffold(
+        body: Center(
+          child: Text("data"),
+        ),
+      ),
     );
   }
 }

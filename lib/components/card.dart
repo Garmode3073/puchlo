@@ -1,12 +1,17 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:puchlo/globals.dart' as g;
+import 'package:puchlo/screens/answers.dart';
+import 'package:puchlo/screens/replies.dart';
 import 'package:puchlo/services/dbservices.dart';
 
 class QueryTileCard extends StatefulWidget {
-  const QueryTileCard({Key key, this.query}) : super(key: key);
+  const QueryTileCard({Key key, this.query, this.parent, this.surfable})
+      : super(key: key);
   final Map query;
+  final Map parent;
+  final bool surfable;
 
   @override
   _QueryTileCardState createState() => _QueryTileCardState();
@@ -28,12 +33,16 @@ class _QueryTileCardState extends State<QueryTileCard> {
   }
 
   Future getLike() async {
-    var v = await DatabaseServices()
-        .isLikedby(widget.query['username'], widget.query['queryid']);
-    var u = await DatabaseServices()
-        .isdislikedby(widget.query['username'], widget.query['queryid']);
-    liked = v;
-    disliked = u;
+    try {
+      var v = await DatabaseServices()
+          .isLikedby(g.userinApp.name, widget.query['queryid']);
+      var u = await DatabaseServices()
+          .isdislikedby(g.userinApp.name, widget.query['queryid']);
+      liked = v;
+      disliked = u;
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
@@ -46,6 +55,27 @@ class _QueryTileCardState extends State<QueryTileCard> {
   Widget build(BuildContext context) {
     return ListTile(
       tileColor: Colors.deepPurple.withOpacity(0.2),
+      onTap: () async {
+        if (widget.surfable) {
+        } else if (widget.query["type"] == "Questions") {
+          Navigator.push(
+              context,
+              PageTransition(
+                  child: AnswerPage(
+                    question: widget.query,
+                  ),
+                  type: PageTransitionType.fade));
+        } else if (widget.query["type"] == "Answers") {
+          Navigator.push(
+              context,
+              PageTransition(
+                  child: RepliesScreeen(
+                    question: widget.parent,
+                    answer: widget.query,
+                  ),
+                  type: PageTransitionType.fade));
+        }
+      },
       title: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -83,17 +113,21 @@ class _QueryTileCardState extends State<QueryTileCard> {
                           if (liked) {
                             setState(() {
                               widget.query['likes']--;
+                              widget.query['ld']--;
                               liked = false;
                             });
                             DatabaseServices().unlike(
-                                widget.query['queryid'],
-                                widget.query['type'],
-                                widget.query['username'],
-                                widget.query['likes']);
+                              widget.query['queryid'],
+                              widget.query['type'],
+                              g.userinApp.name,
+                              widget.query['likes'],
+                              widget.query['ld'],
+                            );
                           } else {
                             setState(() {
                               liked = true;
                               widget.query['likes']++;
+                              widget.query['ld'] += 2;
                             });
                             if (disliked) {
                               setState(() {
@@ -101,16 +135,20 @@ class _QueryTileCardState extends State<QueryTileCard> {
                                 disliked = false;
                               });
                               DatabaseServices().undislike(
-                                  widget.query['queryid'],
-                                  widget.query['type'],
-                                  widget.query['username'],
-                                  widget.query['dislikes']);
-                            }
-                            DatabaseServices().like(
                                 widget.query['queryid'],
                                 widget.query['type'],
-                                widget.query['username'],
-                                widget.query['likes']);
+                                g.userinApp.name,
+                                widget.query['dislikes'],
+                                widget.query['ld'],
+                              );
+                            }
+                            DatabaseServices().like(
+                              widget.query['queryid'],
+                              widget.query['type'],
+                              g.userinApp.name,
+                              widget.query['likes'],
+                              widget.query['ld'],
+                            );
                           }
                           setState(() {});
                         }),
@@ -131,17 +169,21 @@ class _QueryTileCardState extends State<QueryTileCard> {
                           if (disliked) {
                             setState(() {
                               widget.query['dislikes']--;
+                              widget.query['ld']++;
                               disliked = false;
                             });
                             DatabaseServices().undislike(
-                                widget.query['queryid'],
-                                widget.query['type'],
-                                widget.query['username'],
-                                widget.query['dislikes']);
+                              widget.query['queryid'],
+                              widget.query['type'],
+                              g.userinApp.name,
+                              widget.query['dislikes'],
+                              widget.query['ld'],
+                            );
                           } else {
                             setState(() {
                               disliked = true;
                               widget.query['dislikes']++;
+                              widget.query['ld'] -= 2;
                             });
                             if (liked) {
                               setState(() {
@@ -150,16 +192,20 @@ class _QueryTileCardState extends State<QueryTileCard> {
                               });
 
                               DatabaseServices().unlike(
-                                  widget.query['queryid'],
-                                  widget.query['type'],
-                                  widget.query['username'],
-                                  widget.query['likes']);
-                            }
-                            DatabaseServices().dislike(
                                 widget.query['queryid'],
                                 widget.query['type'],
-                                widget.query['username'],
-                                widget.query['dislikes']);
+                                g.userinApp.name,
+                                widget.query['likes'],
+                                widget.query['ld'],
+                              );
+                            }
+                            DatabaseServices().dislike(
+                              widget.query['queryid'],
+                              widget.query['type'],
+                              g.userinApp.name,
+                              widget.query['dislikes'],
+                              widget.query['ld'],
+                            );
                           }
                           setState(() {});
                         }),

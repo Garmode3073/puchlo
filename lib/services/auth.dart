@@ -12,6 +12,10 @@ class AuthServices {
       if (event == null) {
         return null;
       }
+      UserinApp user;
+      DatabaseServices().currentUser(event.uid).then((value) {
+        user = value;
+      });
       return UserinApp.fromMap(
         {'uid': event.uid, 'phone': event.phoneNumber},
       );

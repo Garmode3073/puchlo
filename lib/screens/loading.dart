@@ -13,7 +13,7 @@ class _LoadingPageState extends State<LoadingPage> {
   @override
   Widget build(BuildContext context) {
     g.width = MediaQuery.of(context).size.width;
-    g.width = MediaQuery.of(context).size.height;
+    g.height = MediaQuery.of(context).size.height;
     return Scaffold(
       body: Center(
         child: Container(
@@ -32,7 +32,7 @@ class _LoadingPageState extends State<LoadingPage> {
             children: [
               Expanded(child: Container()),
               SpinKitFoldingCube(
-                color: Colors.blueAccent.withOpacity(0.65),
+                color: Colors.white,
                 size: 100.0,
               ),
               Expanded(child: Container()),

@@ -6,8 +6,12 @@ class Reply {
   String questionid;
   int likes;
   int dislikes;
+  DateTime datetime;
+  int ld;
 
   Reply.fromMap(Map map) {
+    this.datetime = map["dateTime"];
+    this.ld = map["ld"];
     this.id = map["id"];
     this.reply = map["reply"];
     this.username = map["username"];

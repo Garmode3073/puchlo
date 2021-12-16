@@ -6,8 +6,12 @@ class Answer {
   int replies;
   int likes;
   int dislikes;
+  DateTime datetime;
+  int ld;
 
   Answer.fromMap(Map map) {
+    this.datetime = map["dateTime"];
+    this.ld = map["ld"];
     this.id = map["id"];
     this.answer = map["answer"];
     this.username = map["username"];
